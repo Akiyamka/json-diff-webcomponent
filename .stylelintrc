@@ -1,9 +1,6 @@
 {
   "plugins": ["stylelint-order", "stylelint-prettier"],
-  "extends": [
-    "stylelint-config-recommended",
-    "stylelint-config-sass-guidelines"
-  ],
+  "extends": ["stylelint-config-recommended", "stylelint-config-sass-guidelines"],
   "overrides": [
     {
       "files": ["**/*.scss"],
