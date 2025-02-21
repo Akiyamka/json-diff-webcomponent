@@ -1,18 +1,18 @@
-html { 
+html {
   scroll-behavior: smooth;
 }
 
 body {
   padding: 0;
   margin: 0;
-  font-family: Grotesk, "Helvetica Neue", Helvetica, sans-serif;
-  font-size: .9rem;
+  font-family: Grotesk, 'Helvetica Neue', Helvetica, sans-serif;
+  font-size: 0.9rem;
 }
 
 h1 {
   font-size: 3em;
   line-height: 1;
-  margin-bottom: .1em;
+  margin-bottom: 0.1em;
   font-weight: 300;
 }
 
@@ -34,53 +34,57 @@ a:hover {
 
 #main {
   margin: 25px auto;
-  width: 95%
+  width: 95%;
 }
 
-pre.codeBlock, div.codeBlock {
-overflow:auto;
-margin:0 0 1em;
-padding:.5em 1em;
+pre.codeBlock,
+div.codeBlock {
+  overflow: auto;
+  margin: 0 0 1em;
+  padding: 0.5em 1em;
 }
 
 pre.codeBlock .codeLine,
 pre.codeBlock .line-number,
 div.codeBlock .codeLine,
 div.codeBlock .line-number {
-font:normal normal 13px/16px monospace;
-font-family: Monaco, monospace;
-color:black;
-display:block;
+  font: normal normal 13px/16px monospace;
+  font-family: Monaco, monospace;
+  color: black;
+  display: block;
 }
 
-pre.codeBlock.codeBlock span.code, div.codeBlock span.code {
+pre.codeBlock.codeBlock span.code,
+div.codeBlock span.code {
   min-width: 97%;
   display: inline-block;
 }
 
-pre.codeBlock .line-number, div.codeBlock .line-number {
-margin:0 1em 0 -1em;
-border-right:1px solid #eee;
-color: #bbb;
-text-align:right;
--webkit-user-select: none; /* Chrome/Safari */
--moz-user-select: none; /* Firefox */
--ms-user-select: none; /* IE10+ */
+pre.codeBlock .line-number,
+div.codeBlock .line-number {
+  margin: 0 1em 0 -1em;
+  border-right: 1px solid #eee;
+  color: #bbb;
+  text-align: right;
+  -webkit-user-select: none; /* Chrome/Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+ */
 
--o-user-select: none;
-user-select: none;
-padding-left: 0.2em;
-padding-right: 0.2em;
+  -o-user-select: none;
+  user-select: none;
+  padding-left: 0.2em;
+  padding-right: 0.2em;
 }
 
-pre.codeBlock .line-number span, div.codeBlock .line-number span {
-display:block;
-padding:0 .5em 0 1em;
+pre.codeBlock .line-number span,
+div.codeBlock .line-number span {
+  display: block;
+  padding: 0 0.5em 0 1em;
 }
 
 pre.codeBlock .cl {
-display:block;
-clear:both;
+  display: block;
+  clear: both;
 }
 
 div.diffcontainer {
@@ -107,9 +111,8 @@ div.center {
   text-align: left;
   margin-top: 20%;
   margin-left: 2%;
-text-align: center;
+  text-align: center;
 }
-  
 
 pre.codeBlock.left {
   width: 40%;
@@ -141,7 +144,6 @@ ul.toolbar {
   color: black;
   width: 15em;
 }
-  
 
 ul.toolbar li {
   border: thin solid lightgray;
@@ -151,7 +153,7 @@ ul.toolbar li {
   background-color: rgba(50, 57, 88, 0.1);
   color: black;
   cursor: pointer;
-line-height: 18px;
+  line-height: 18px;
 }
 
 ul.toolbar li code {
@@ -162,8 +164,8 @@ ul.toolbar li code {
   border-radius: 3px;
   color: #333;
   line-height: 20px;
-font-family: Monaco, monospace;
-font-size: 0.85em;
+  font-family: Monaco, monospace;
+  font-size: 0.85em;
 }
 
 #buttons {
@@ -201,7 +203,9 @@ div.codeLine span.diff {
   color: #c00;
 }
 
-div.codeLine span.eq_off, div.codeLine span.type_off, div.codeLine span.missing_off {
+div.codeLine span.eq_off,
+div.codeLine span.type_off,
+div.codeLine span.missing_off {
   cursor: auto;
 }
 
@@ -244,13 +248,13 @@ textarea {
 }
 
 textarea.error {
-  border-color: #FBC2C4;
+  border-color: #fbc2c4;
 }
 
 pre.error {
-  background: #FBE3E4;
-  color: #D12F19;
-  border: thin solid #FBC2C4;
+  background: #fbe3e4;
+  color: #d12f19;
+  border: thin solid #fbc2c4;
   border-radius: 4px;
   padding: 1em;
   display: none;
@@ -286,14 +290,14 @@ button {
   border: 1px solid #333;
   border-radius: 4px;
   background: white;
-  padding: .5rem .7rem;
-cursor: pointer;
+  padding: 0.5rem 0.7rem;
+  cursor: pointer;
 }
 
 .weak {
   color: #333;
   max-width: 25rem;
-  font-size: .9em;
+  font-size: 0.9em;
   position: absolute;
   top: 29px;
   left: 56.5%;
@@ -311,8 +315,8 @@ p {
 
 span.fileInput {
   margin-left: 2em;
-margin-top: 0.5em;
-display: inline-block;
+  margin-top: 0.5em;
+  display: inline-block;
 }
 
 .throbber-loader:not(:required) {
