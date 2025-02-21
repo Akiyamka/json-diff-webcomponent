@@ -1,52 +1,98 @@
-type JSONValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JSONValue[]
-  | { [key: string]: JSONValue };
+type JSONValue = string | number | boolean | null | JSONValue[] | { [key: string]: JSONValue };
 
-type DiffState = {
+type DiffPath = {
+  path: string;
+  line: number;
+};
+
+type Diff = {
+  path1: DiffPath;
+  path2: DiffPath;
+  type: string;
+  msg: string;
+};
+
+interface DiffState {
   out: string;
   indent: number;
   currentPath: string[];
   paths: { path: string; line: number }[];
   line: number;
-};
+}
 
-// utilites
-//
-/**
- * Fixing typeof
- * takes value and returns type of value
- * @param  value
- * return typeof value
- */
 function getType(value: unknown): string {
   if (
-    function () {
+    function (this: unknown) {
       return value && value !== this;
     }.call(value)
   ) {
     //fallback on 'typeof' for truthy primitive values
     return typeof value;
   }
-  return {}.toString
-    .call(value)
-    .match(/\s([a-z|A-Z]+)/)[1]
-    .toLowerCase();
+  const match = {}.toString.call(value).match(/\s([a-z|A-Z]+)/);
+  if (!match || !match[1]) {
+    return 'undefined';
+  }
+  return match[1].toLowerCase();
 }
 
-/**
- * The jdd object handles all of the functions for the main page.  It finds the diffs and manages
- * the interactions of displaying them.
- */
-/*global jdd:true */
-const jdd = {
+interface JDD {
+  currentDiff: number;
+  LEFT: string;
+  RIGHT: string;
+  BOTH: string;
+  EQUALITY: string;
+  TYPE: string;
+  MISSING: string;
+  diffs: Diff[];
+  SEPARATOR: string;
+  requestCount: number;
+  findDiffs(config1: DiffState, data1: JSONValue, config2: DiffState, data2: JSONValue): void;
+  diffVal(left: JSONValue, leftConfig: DiffState, right: JSONValue, rightConfig: DiffState): void;
+  diffArray(val1: JSONValue[], config1: DiffState, val2: JSONValue[], config2: DiffState): void;
+  diffBool(val1: boolean, config1: DiffState, val2: JSONValue, config2: DiffState): void;
+  formatAndDecorate(config: DiffState, data: JSONValue): void;
+  formatAndDecorateArray(config: DiffState, data: JSONValue[]): void;
+  startArray(config: DiffState): void;
+  finishArray(config: DiffState): void;
+  startObject(config: DiffState): void;
+  finishObject(config: DiffState): void;
+  formatVal(val: JSONValue, config: DiffState): void;
+  unescapeString(val: string): string;
+  generatePath(config: DiffState, prop?: string): string;
+  newLine(config: DiffState): string;
+  getSortedProperties(obj: Record<string, JSONValue>): string[];
+  generateDiff(
+    config1: DiffState,
+    path1: string,
+    config2: DiffState,
+    path2: string,
+    msg: string,
+    type: string
+  ): Diff;
+  getTabs(indent: number): string;
+  removeTrailingComma(config: DiffState): void;
+  createConfig(): DiffState;
+  format(views: HTMLPreElement[]): void;
+  handleDiffClick(line: number, side: string): void;
+  highlightPrevDiff(): void;
+  highlightNextDiff(): void;
+  highlightDiff(index: number): void;
+  showDiffDetails(diffs: Diff[]): void;
+  scrollToDiff(diff: Diff): void;
+  processDiffs(): void;
+  validateInput(json: string): boolean;
+  handleFiles(files: FileList, side: string): void;
+  setupNewDiff(): void;
+  generateReport(): void;
+  compare(left: string, right: string, options: { container: HTMLElement }): void;
+}
+
+const jdd: JDD = {
   currentDiff: 0,
   LEFT: 'left',
   RIGHT: 'right',
-
+  BOTH: 'both',
   EQUALITY: 'eq',
   TYPE: 'type',
   MISSING: 'missing',
@@ -57,35 +103,43 @@ const jdd = {
   /**
    * Find the differences between the two objects and recurse into their sub objects.
    */
-  findDiffs: function (config1: DiffState, data1: JSON, config2: DiffState, data2: JSON) {
+  findDiffs: function (config1: DiffState, data1: JSONValue, config2: DiffState, data2: JSONValue) {
     config1.currentPath.push(jdd.SEPARATOR);
     config2.currentPath.push(jdd.SEPARATOR);
+    if (
+      typeof data1 !== 'object' ||
+      data1 === null ||
+      Array.isArray(data1) ||
+      typeof data2 !== 'object' ||
+      data2 === null ||
+      Array.isArray(data2)
+    ) {
+      return;
+    }
 
-    var key;
-    // no un-used vars
-    // var val;
+    const obj1 = data1 as { [key: string]: JSONValue };
+    const obj2 = data2 as { [key: string]: JSONValue };
 
-    if (data1.length < data2.length) {
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+
+    if (keys1.length < keys2.length) {
       /*
        * This means the second data has more properties than the first.
        * We need to find the extra ones and create diffs for them.
        */
-      for (key in data2) {
-        if (data2.hasOwnProperty(key)) {
-          // no un-used vars
-          // val = data1[key];
-          if (!data1.hasOwnProperty(key)) {
-            jdd.diffs.push(
-              jdd.generateDiff(
-                config1,
-                jdd.generatePath(config1),
-                config2,
-                jdd.generatePath(config2, jdd.SEPARATOR + key),
-                'The right side of this object has more items than the left side',
-                jdd.MISSING
-              )
-            );
-          }
+      for (const key of keys2) {
+        if (!obj1.hasOwnProperty(key)) {
+          jdd.diffs.push(
+            jdd.generateDiff(
+              config1,
+              jdd.generatePath(config1),
+              config2,
+              jdd.generatePath(config2, jdd.SEPARATOR + key),
+              'The right side of this object has more items than the left side',
+              jdd.MISSING
+            )
+          );
         }
       }
     }
@@ -94,35 +148,29 @@ const jdd = {
      * Now we're going to look for all the properties in object one and
      * compare them to object two
      */
-    for (key in data1) {
-      if (data1.hasOwnProperty(key)) {
-        // no un-used vars
-        // val = data1[key];
-
-        config1.currentPath.push(key.replace(jdd.SEPARATOR, '#'));
-        if (!data2.hasOwnProperty(key)) {
-          /*
-           * This means that the first data has a property which
-           * isn't present in the second data
-           */
-          jdd.diffs.push(
-            jdd.generateDiff(
-              config1,
-              jdd.generatePath(config1),
-              config2,
-              jdd.generatePath(config2),
-              'Missing property <code>' + key + '</code> from the object on the right side',
-              jdd.MISSING
-            )
-          );
-        } else {
-          config2.currentPath.push(key.replace(jdd.SEPARATOR, '#'));
-
-          jdd.diffVal(data1[key], config1, data2[key], config2);
-          config2.currentPath.pop();
-        }
-        config1.currentPath.pop();
+    for (const key of keys1) {
+      config1.currentPath.push(key.replace(jdd.SEPARATOR, '#'));
+      if (!obj2.hasOwnProperty(key)) {
+        /*
+         * This means that the first data has a property which
+         * isn't present in the second data
+         */
+        jdd.diffs.push(
+          jdd.generateDiff(
+            config1,
+            jdd.generatePath(config1),
+            config2,
+            jdd.generatePath(config2),
+            'Missing property <code>' + key + '</code> from the object on the right side',
+            jdd.MISSING
+          )
+        );
+      } else {
+        config2.currentPath.push(key.replace(jdd.SEPARATOR, '#'));
+        jdd.diffVal(obj1[key], config1, obj2[key], config2);
+        config2.currentPath.pop();
       }
+      config1.currentPath.pop();
     }
 
     config1.currentPath.pop();
@@ -132,23 +180,18 @@ const jdd = {
      * Now we want to look at all the properties in object two that
      * weren't in object one and generate diffs for them.
      */
-    for (key in data2) {
-      if (data2.hasOwnProperty(key)) {
-        // no un-used vars
-        // val = data1[key];
-
-        if (!data1.hasOwnProperty(key)) {
-          jdd.diffs.push(
-            jdd.generateDiff(
-              config1,
-              jdd.generatePath(config1),
-              config2,
-              jdd.generatePath(config2, key),
-              'Missing property <code>' + key + '</code> from the object on the left side',
-              jdd.MISSING
-            )
-          );
-        }
+    for (const key of keys2) {
+      if (!obj1.hasOwnProperty(key)) {
+        jdd.diffs.push(
+          jdd.generateDiff(
+            config1,
+            jdd.generatePath(config1),
+            config2,
+            jdd.generatePath(config2, key),
+            'Missing property <code>' + key + '</code> from the object on the left side',
+            jdd.MISSING
+          )
+        );
       }
     }
   },
@@ -157,10 +200,23 @@ const jdd = {
    * Generate the differences between two values.  This handles differences of object
    * types and actual values.
    */
-  diffVal(left: JSON, leftConfig: DiffState, right: JSON, rightConfig: DiffState) {
-    if (getType(left) === 'array') {
-      jdd.diffArray(left, leftConfig, right, rightConfig);
-    } else if (getType(left) === 'object') {
+  diffVal(left: JSONValue, leftConfig: DiffState, right: JSONValue, rightConfig: DiffState) {
+    if (Array.isArray(left)) {
+      if (Array.isArray(right)) {
+        jdd.diffArray(left, leftConfig, right, rightConfig);
+      } else {
+        jdd.diffs.push(
+          jdd.generateDiff(
+            leftConfig,
+            jdd.generatePath(leftConfig),
+            rightConfig,
+            jdd.generatePath(rightConfig),
+            'Both types should be arrays',
+            jdd.TYPE
+          )
+        );
+      }
+    } else if (typeof left === 'object' && left !== null && !Array.isArray(left)) {
       if (['array', 'string', 'number', 'boolean', 'null'].indexOf(getType(right)) > -1) {
         jdd.diffs.push(
           jdd.generateDiff(
@@ -223,7 +279,7 @@ const jdd = {
           )
         );
       }
-    } else if (getType(left) === 'boolean') {
+    } else if (typeof left === 'boolean') {
       jdd.diffBool(left, leftConfig, right, rightConfig);
     } else if (getType(left) === 'null' && getType(right) !== 'null') {
       jdd.diffs.push(
@@ -243,8 +299,13 @@ const jdd = {
    * Arrays are more complex because we need to recurse into them and handle different length
    * issues so we handle them specially in this function.
    */
-  diffArray: function (val1, config1, val2, config2) {
-    if (getType(val2) !== 'array') {
+  diffArray: function (
+    val1: JSONValue[],
+    config1: DiffState,
+    val2: JSONValue[],
+    config2: DiffState
+  ) {
+    if (!Array.isArray(val2)) {
       jdd.diffs.push(
         jdd.generateDiff(
           config1,
@@ -307,8 +368,8 @@ const jdd = {
   /**
    * We handle boolean values specially because we can show a nicer message for them.
    */
-  diffBool: function (val1, config1, val2, config2) {
-    if (getType(val2) !== 'boolean') {
+  diffBool: function (val1: boolean, config1: DiffState, val2: JSONValue, config2: DiffState) {
+    if (typeof val2 !== 'boolean') {
       jdd.diffs.push(
         jdd.generateDiff(
           config1,
@@ -350,16 +411,20 @@ const jdd = {
    * Format the object into the output stream and decorate the data tree with
    * the data about this object.
    */
-  formatAndDecorate(config: DiffState, data: JSON) {
-    if (getType(data) === 'array') {
+  formatAndDecorate(config: DiffState, data: JSONValue) {
+    if (Array.isArray(data)) {
       jdd.formatAndDecorateArray(config, data);
+      return;
+    }
+
+    if (typeof data !== 'object' || data === null) {
       return;
     }
 
     jdd.startObject(config);
     config.currentPath.push(jdd.SEPARATOR);
 
-    const props = jdd.getSortedProperties(data);
+    const props = jdd.getSortedProperties(data as Record<string, JSONValue>);
 
     /*
      * If the first set has more than the second then we will catch it
@@ -497,12 +562,12 @@ const jdd = {
   /**
    * Format a specific value into the output stream.
    */
-  formatVal: function (val, config) {
-    if (getType(val) === 'array') {
+  formatVal: function (val: JSONValue, config: DiffState) {
+    if (Array.isArray(val)) {
       config.out += '[';
 
       config.indent++;
-      val.forEach(function (arrayVal, index) {
+      val.forEach(function (arrayVal: JSONValue, index: number) {
         config.out += jdd.newLine(config) + jdd.getTabs(config.indent);
         config.paths.push({
           path: jdd.generatePath(config, '[' + index + ']'),
@@ -517,15 +582,15 @@ const jdd = {
       config.indent--;
 
       config.out += jdd.newLine(config) + jdd.getTabs(config.indent) + ']' + ',';
-    } else if (getType(val) === 'object') {
+    } else if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
       jdd.formatAndDecorate(config, val);
-    } else if (getType(val) === 'string') {
+    } else if (typeof val === 'string') {
       config.out += '"' + jdd.unescapeString(val) + '",';
-    } else if (getType(val) === 'number') {
+    } else if (typeof val === 'number') {
       config.out += val + ',';
-    } else if (getType(val) === 'boolean') {
+    } else if (typeof val === 'boolean') {
       config.out += val + ',';
-    } else if (getType(val) === 'null') {
+    } else if (val === null) {
       config.out += 'null,';
     }
   },
@@ -607,34 +672,48 @@ const jdd = {
   /**
    * Generate the diff and verify that it matches a JSON path
    */
-  generateDiff: function (config1, path1, config2, path2, /*String*/ msg, type) {
-    if (path1 !== jdd.SEPARATOR && path1.charAt(path1.length - 1) === jdd.SEPARATOR) {
-      path1 = path1.substring(0, path1.length - 1);
-    }
+  generateDiff: function (
+    config1: DiffState,
+    path1: string,
+    config2: DiffState,
+    path2: string,
+    msg: string,
+    type: string
+  ): Diff {
+    const normalizedPath1 =
+      path1 !== jdd.SEPARATOR && path1.charAt(path1.length - 1) === jdd.SEPARATOR
+        ? path1.substring(0, path1.length - 1)
+        : path1;
 
-    if (path2 !== jdd.SEPARATOR && path2.charAt(path2.length - 1) === jdd.SEPARATOR) {
-      path2 = path2.substring(0, path2.length - 1);
-    }
-    var pathObj1 = config1.paths.find(function (path) {
-      return path.path === path1;
-    });
-    var pathObj2 = config2.paths.find(function (path) {
-      return path.path === path2;
-    });
+    const normalizedPath2 =
+      path2 !== jdd.SEPARATOR && path2.charAt(path2.length - 1) === jdd.SEPARATOR
+        ? path2.substring(0, path2.length - 1)
+        : path2;
+
+    let pathObj1 = config1.paths.find((path) => path.path === normalizedPath1);
+    let pathObj2 = config2.paths.find((path) => path.path === normalizedPath2);
 
     if (!pathObj1) {
-      throw 'Unable to find line number for (' + msg + '): ' + path1;
+      pathObj1 = {
+        path: normalizedPath1,
+        line: config1.line,
+      };
+      config1.paths.push(pathObj1);
     }
 
     if (!pathObj2) {
-      throw 'Unable to find line number for (' + msg + '): ' + path2;
+      pathObj2 = {
+        path: normalizedPath2,
+        line: config2.line,
+      };
+      config2.paths.push(pathObj2);
     }
 
     return {
       path1: pathObj1,
       path2: pathObj2,
-      type: type,
-      msg: msg,
+      type,
+      msg,
     };
   },
 
@@ -735,12 +814,15 @@ const jdd = {
     });
 
     diffs.forEach(function (diff) {
-      document
-        .querySelector('pre.left div.line' + diff.path1.line + ' span.code')
-        .classList.add('selected');
-      document
-        .querySelector('pre.right div.line' + diff.path2.line + ' span.code')
-        .classList.add('selected');
+      const leftElement = document.querySelector(
+        'pre.left div.line' + diff.path1.line + ' span.code'
+      );
+      const rightElement = document.querySelector(
+        'pre.right div.line' + diff.path2.line + ' span.code'
+      );
+
+      leftElement?.classList.add('selected');
+      rightElement?.classList.add('selected');
     });
 
     if (side === jdd.LEFT || side === jdd.RIGHT) {
@@ -754,7 +836,6 @@ const jdd = {
         return diff.path2.line === line;
       });
     }
-
 
     jdd.showDiffDetails(diffs);
   },
@@ -795,12 +876,14 @@ const jdd = {
    * Scroll the specified diff to be visible
    */
   scrollToDiff: function (diff) {
-    var elementOffsetTop =
-      document
-        .querySelector('pre.left div.line' + diff.path1.line + ' span.code')
-        .getBoundingClientRect().top +
+    const element = document.querySelector('pre.left div.line' + diff.path1.line + ' span.code');
+    if (!element) return;
+
+    const elementOffsetTop =
+      element.getBoundingClientRect().top +
       window.scrollY -
-      document.documentElement.clientTop;
+      (document.documentElement?.clientTop || 0);
+
     window.scrollTo({
       behavior: 'smooth',
       left: 0,
@@ -812,12 +895,12 @@ const jdd = {
    * Process the specified diff
    */
   processDiffs: function () {
-    const left = [];
-    const right = [];
+    const left: number[] = [];
+    const right: number[] = [];
 
     // Cache the lines for fast lookup
-    const leftLineLookup = {};
-    const rightLineLookup = {};
+    const leftLineLookup: Record<number, Element> = {};
+    const rightLineLookup: Record<number, Element> = {};
 
     // We can use the index to save lookup up the parents class
     document.querySelectorAll('pre.left span.code').forEach((val, index) => {
@@ -827,6 +910,10 @@ const jdd = {
     document.querySelectorAll('pre.right span.code').forEach((val, index) => {
       rightLineLookup[index + 1] = val;
     });
+
+    if (!leftLineLookup || !rightLineLookup) {
+      return;
+    }
 
     jdd.diffs.forEach(function (diff) {
       leftLineLookup[diff.path1.line].classList.add(diff.type, 'diff');
@@ -854,9 +941,9 @@ const jdd = {
   /**
    * Validate the input against the JSON parser
    */
-  validateInput: function (json) {
+  validateInput: function (json: string): boolean {
     try {
-      jsl.parser.parse(json);
+      JSON.parse(json);
       return true;
     } catch (parseException) {
       return false;
@@ -866,49 +953,70 @@ const jdd = {
   /**
    * Handle the file uploads
    */
-  handleFiles: function (files, side) {
-    var reader = new FileReader();
+  handleFiles: function (files: FileList, side: string) {
+    const reader = new FileReader();
 
-    reader.onload = (function () {
-      return function (event) {
-        if (side === jdd.LEFT) {
-          document.getElementById('textarealeft').value = event.target.result;
-        } else {
-          document.getElementById('textarearight').value = event.target.result;
-        }
-      };
-    })(files[0]);
+    reader.onload = function (event: ProgressEvent<FileReader>) {
+      const target = event.target as FileReader;
+      if (!target) return;
 
-    reader.readAsText(files[0]);
+      const textArea = document.getElementById(
+        side === jdd.LEFT ? 'textarealeft' : 'textarearight'
+      ) as HTMLTextAreaElement;
+      if (!textArea) return;
+
+      textArea.value = target.result as string;
+    };
+
+    if (files.length > 0) {
+      reader.readAsText(files[0]);
+    }
   },
 
   setupNewDiff: function () {
-    document.querySelector('.initContainer').style.display = 'block';
-    document.querySelector('.diffcontainer').style.display = 'none';
-    document.querySelectorAll('.diffcontainer pre').forEach(function (elem) {
-      elem.replaceChildren();
-    });
-    document.querySelector('.toolbar').replaceChildren();
+    const initContainer = document.querySelector('.initContainer') as HTMLElement;
+    const diffContainer = document.querySelector('.diffcontainer') as HTMLElement;
+    const toolbar = document.querySelector('.toolbar');
+
+    if (initContainer) {
+      initContainer.style.display = 'block';
+    }
+    if (diffContainer) {
+      diffContainer.style.display = 'none';
+      diffContainer.querySelectorAll('pre').forEach(function (elem) {
+        while (elem.firstChild) {
+          elem.removeChild(elem.firstChild);
+        }
+      });
+    }
+    if (toolbar) {
+      while (toolbar.firstChild) {
+        toolbar.removeChild(toolbar.firstChild);
+      }
+    }
   },
 
   /**
    * Generate the report section with the diff
    */
   generateReport: function () {
-    var report = document.getElementById('report');
+    const report = document.getElementById('report');
+    if (!report) return;
 
-    report.replaceChildren();
+    while (report.firstChild) {
+      report.removeChild(report.firstChild);
+    }
 
     report.insertAdjacentHTML('beforeend', '<button>Perform a new diff</button>');
-    // TODO: add a class/id name to button and use that to select and add event
-    report.querySelector('button').addEventListener('click', function () {
+    const newDiffButton = report.querySelector('button');
+    newDiffButton?.addEventListener('click', function () {
       jdd.setupNewDiff();
     });
 
     if (jdd.diffs.length === 0) {
       report.insertAdjacentHTML(
         'beforeend',
-        '<span>The two files were semantically  identical.</span>'
+        '<span>The two files were semantically identical.</span>'
       );
       return;
     }
@@ -983,8 +1091,10 @@ const jdd = {
 
     // The missing checkbox event
     if (missingCount > 0) {
-      document.querySelector('#showMissing').addEventListener('change', function (event) {
-        if (!event.target.checked) {
+      const showMissingCheckbox = document.querySelector('#showMissing');
+      showMissingCheckbox?.addEventListener('change', function (event: Event) {
+        const target = event.target as HTMLInputElement;
+        if (!target?.checked) {
           document.querySelectorAll('span.code.diff.missing').forEach(function (element) {
             element.classList.toggle('missing_off');
             element.classList.toggle('missing');
@@ -1000,8 +1110,10 @@ const jdd = {
 
     // The types checkbox event
     if (typeCount > 0) {
-      document.querySelector('#showTypes').addEventListener('change', function (event) {
-        if (!event.target.checked) {
+      const showTypesCheckbox = document.querySelector('#showTypes');
+      showTypesCheckbox?.addEventListener('change', function (event: Event) {
+        const target = event.target as HTMLInputElement;
+        if (!target?.checked) {
           document.querySelectorAll('span.code.diff.type').forEach(function (element) {
             element.classList.toggle('type_off');
             element.classList.toggle('type');
@@ -1017,8 +1129,10 @@ const jdd = {
 
     // The equals checkbox event
     if (eqCount > 0) {
-      document.querySelector('#showEq').addEventListener('change', function (event) {
-        if (!event.target.checked) {
+      const showEqCheckbox = document.querySelector('#showEq');
+      showEqCheckbox?.addEventListener('change', function (event: Event) {
+        const target = event.target as HTMLInputElement;
+        if (!target?.checked) {
           document.querySelectorAll('span.code.diff.eq').forEach(function (element) {
             element.classList.toggle('eq_off');
             element.classList.toggle('eq');
@@ -1041,7 +1155,7 @@ const jdd = {
     leftView.classList.add('codeBlock');
     leftView.classList.add('left');
     const leftConfig = jdd.createConfig();
-    const leftData = JSON.parse(left) as JSON;
+    const leftData = JSON.parse(left) as JSONValue;
     jdd.formatAndDecorate(leftConfig, leftData);
     leftView.textContent = leftConfig.out;
 
@@ -1049,7 +1163,7 @@ const jdd = {
     rightView.classList.add('codeBlock');
     rightView.classList.add('right');
     const rightConfig = jdd.createConfig();
-    const rightData = JSON.parse(right) as JSON;
+    const rightData = JSON.parse(right) as JSONValue;
 
     container.appendChild(leftView);
     container.appendChild(rightView);
