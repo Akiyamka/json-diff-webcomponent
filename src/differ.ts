@@ -1,3 +1,10 @@
+const enum Side {
+  LEFT = 'left',
+  RIGHT = 'right',
+  BOTH = 'both',
+  EQUALITY = 'eq',
+}
+
 type JSONValue = string | number | boolean | null | JSONValue[] | { [key: string]: JSONValue };
 
 type DiffPath = {
@@ -38,10 +45,6 @@ function getType(value: unknown): string {
 
 interface JDD {
   currentDiff: number;
-  LEFT: string;
-  RIGHT: string;
-  BOTH: string;
-  EQUALITY: string;
   TYPE: string;
   MISSING: string;
   diffs: Diff[];
@@ -90,10 +93,6 @@ interface JDD {
 
 const jdd: JDD = {
   currentDiff: 0,
-  LEFT: 'left',
-  RIGHT: 'right',
-  BOTH: 'both',
-  EQUALITY: 'eq',
   TYPE: 'type',
   MISSING: 'missing',
   diffs: [],
@@ -251,7 +250,7 @@ const jdd: JDD = {
             rightConfig,
             jdd.generatePath(rightConfig),
             'Both sides should be equal strings',
-            jdd.EQUALITY
+            Side.EQUALITY
           )
         );
       }
@@ -275,7 +274,7 @@ const jdd: JDD = {
             rightConfig,
             jdd.generatePath(rightConfig),
             'Both sides should be equal numbers',
-            jdd.EQUALITY
+            Side.EQUALITY
           )
         );
       }
@@ -389,7 +388,7 @@ const jdd: JDD = {
             config2,
             jdd.generatePath(config2),
             'The left side is <code>true</code> and the right side is <code>false</code>',
-            jdd.EQUALITY
+            Side.EQUALITY
           )
         );
       } else {
@@ -400,7 +399,7 @@ const jdd: JDD = {
             config2,
             jdd.generatePath(config2),
             'The left side is <code>false</code> and the right side is <code>true</code>',
-            jdd.EQUALITY
+            Side.EQUALITY
           )
         );
       }
@@ -796,9 +795,9 @@ const jdd: JDD = {
 
   handleDiffClick: function (line, side) {
     var diffs = jdd.diffs.filter(function (diff) {
-      if (side === jdd.LEFT) {
+      if (side === Side.LEFT) {
         return line === diff.path1.line;
-      } else if (side === jdd.RIGHT) {
+      } else if (side === Side.RIGHT) {
         return line === diff.path2.line;
       } else {
         return line === diff.path1.line || line === diff.path2.line;
@@ -825,7 +824,7 @@ const jdd: JDD = {
       rightElement?.classList.add('selected');
     });
 
-    if (side === jdd.LEFT || side === jdd.RIGHT) {
+    if (side === Side.LEFT || side === Side.RIGHT) {
       jdd.currentDiff = jdd.diffs.findIndex(function (diff) {
         return diff.path1.line === line;
       });
@@ -860,7 +859,7 @@ const jdd: JDD = {
    * Highlight the diff at the specified index
    */
   highlightDiff: function (index) {
-    jdd.handleDiffClick(jdd.diffs[index].path1.line, jdd.BOTH);
+    jdd.handleDiffClick(jdd.diffs[index].path1.line, Side.BOTH);
   },
 
   /**
@@ -919,7 +918,7 @@ const jdd: JDD = {
       leftLineLookup[diff.path1.line].classList.add(diff.type, 'diff');
       if (left.indexOf(diff.path1.line) === -1) {
         leftLineLookup[diff.path1.line].addEventListener('click', function () {
-          jdd.handleDiffClick(diff.path1.line, jdd.LEFT);
+          jdd.handleDiffClick(diff.path1.line, Side.LEFT);
         });
         left.push(diff.path1.line);
       }
@@ -927,7 +926,7 @@ const jdd: JDD = {
       rightLineLookup[diff.path2.line].classList.add(diff.type, 'diff');
       if (right.indexOf(diff.path2.line) === -1) {
         rightLineLookup[diff.path2.line].addEventListener('click', function () {
-          jdd.handleDiffClick(diff.path2.line, jdd.RIGHT);
+          jdd.handleDiffClick(diff.path2.line, Side.RIGHT);
         });
         right.push(diff.path2.line);
       }
@@ -961,7 +960,7 @@ const jdd: JDD = {
       if (!target) return;
 
       const textArea = document.getElementById(
-        side === jdd.LEFT ? 'textarealeft' : 'textarearight'
+        side === Side.LEFT ? 'textarealeft' : 'textarearight'
       ) as HTMLTextAreaElement;
       if (!textArea) return;
 
@@ -1025,7 +1024,7 @@ const jdd: JDD = {
     var eqCount = 0;
     var missingCount = 0;
     jdd.diffs.forEach(function (diff) {
-      if (diff.type === jdd.EQUALITY) {
+      if (diff.type === Side.EQUALITY) {
         eqCount++;
       } else if (diff.type === jdd.MISSING) {
         missingCount++;
