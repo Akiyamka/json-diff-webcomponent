@@ -1,7 +1,7 @@
 {
   "name": "json-diff-webcomponent",
   "private": false,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "module": "./dist/json-diff-webcomponent.js",
   "type": "module",
   "exports": {
@@ -15,7 +15,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "dev": "vite --host",
-    "build": "rimraf build/**/* && tsc && vite build && dts-bundle-generator --config ./dts-bundle-generator.config.ts && copyfiles ./package.json build",
+    "build": "rimraf build/**/* && tsc && vite build && copyfiles ./package.json dist/**/* build",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "lint:scripts": "eslint . --ext .ts",
@@ -24,7 +24,8 @@
     "format:styles": "stylelint ./**/*.css --fix",
     "format": "npm run format:scripts && npm run format:styles",
     "prepare": "husky && echo 'npx lint-staged' > .husky/pre-commit && git add .husky/pre-commit",
-    "uninstall-husky": "npm uninstall husky --no-save && git config --unset core.hooksPath && npx rimraf .husky"
+    "uninstall-husky": "npm uninstall husky --no-save && git config --unset core.hooksPath && npx rimraf .husky",
+    "publish": "pnpm publish ./build"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
@@ -33,7 +34,7 @@
     "@typescript-eslint/parser": "^7.18.0",
     "@vitest/coverage-v8": "^2.0.4",
     "copyfiles": "^2.4.1",
-    "dts-bundle-generator": "^9.5.1",
+    "vite-plugin-dts": "^4.5.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",

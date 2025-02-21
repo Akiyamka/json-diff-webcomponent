@@ -43,7 +43,7 @@ function getType(value: unknown): string {
   return match[1].toLowerCase();
 }
 
-interface JDD {
+export interface JDD {
   currentDiff: number;
   TYPE: string;
   MISSING: string;
@@ -81,7 +81,6 @@ interface JDD {
   highlightPrevDiff(): void;
   highlightNextDiff(): void;
   highlightDiff(index: number): void;
-  showDiffDetails(diffs: Diff[]): void;
   scrollToDiff(diff: Diff): void;
   processDiffs(): void;
   validateInput(json: string): boolean;
@@ -336,7 +335,7 @@ const jdd: JDD = {
         );
       }
     }
-    val1.forEach(function (arrayVal, index) {
+    val1.forEach(function (_, index) {
       if (val2.length <= index) {
         jdd.diffs.push(
           jdd.generateDiff(
@@ -835,8 +834,6 @@ const jdd: JDD = {
         return diff.path2.line === line;
       });
     }
-
-    jdd.showDiffDetails(diffs);
   },
 
   highlightPrevDiff: function () {
@@ -860,15 +857,6 @@ const jdd: JDD = {
    */
   highlightDiff: function (index) {
     jdd.handleDiffClick(jdd.diffs[index].path1.line, Side.BOTH);
-  },
-
-  /**
-   * Show the details of the specified diff
-   */
-  showDiffDetails: function (diffs) {
-    diffs.forEach(function (diff, index) {
-      var li = '<li>' + diff.msg + '</li>';
-    });
   },
 
   /**

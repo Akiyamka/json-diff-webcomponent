@@ -2,8 +2,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@@/*": ["./*"]
+      "~/*": ["./src/*"]
     },
     "target": "ESNext",
     "useDefineForClassFields": true,

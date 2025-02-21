@@ -1,5 +1,6 @@
 /// <reference types="vitest" />
 import path from 'path';
+import dts from 'vite-plugin-dts';
 import { defineConfig } from 'vite';
 import packageJson from './package.json';
 
@@ -25,7 +26,7 @@ const formats = Object.keys(fileName) as Array<keyof typeof fileName>;
 export default defineConfig({
   base: './',
   build: {
-    outDir: './build/dist',
+    outDir: './dist',
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: getPackageNameCamelCase(),
@@ -38,8 +39,16 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
-      '@@': path.resolve(__dirname),
+      '~': path.resolve(__dirname, 'src'),
     },
   },
+  plugins: [
+    dts({
+      outDir: './dist', // dts.root + 'dist' => where we need to rollup.
+      root: './', //vite.root + ../ = ./ = (dts.root)
+      staticImport: true,
+      insertTypesEntry: true,
+      rollupTypes: true,
+    }),
+  ],
 });
