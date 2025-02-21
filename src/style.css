@@ -3,17 +3,17 @@ html {
 }
 
 body {
-  padding: 0;
-  margin: 0;
   font-family: Grotesk, 'Helvetica Neue', Helvetica, sans-serif;
   font-size: 0.9rem;
+  margin: 0;
+  padding: 0;
 }
 
 h1 {
   font-size: 3em;
+  font-weight: 300;
   line-height: 1;
   margin-bottom: 0.1em;
-  font-weight: 300;
 }
 
 h3 {
@@ -24,8 +24,8 @@ h3 {
 }
 
 a {
-  text-decoration: none;
   color: #36c;
+  text-decoration: none;
 }
 
 a:hover {
@@ -39,8 +39,8 @@ a:hover {
 
 pre.codeBlock,
 div.codeBlock {
-  overflow: auto;
   margin: 0 0 1em;
+  overflow: auto;
   padding: 0.5em 1em;
 }
 
@@ -48,23 +48,25 @@ pre.codeBlock .codeLine,
 pre.codeBlock .line-number,
 div.codeBlock .codeLine,
 div.codeBlock .line-number {
-  font: normal normal 13px/16px monospace;
-  font-family: Monaco, monospace;
   color: black;
   display: block;
+  font: normal normal 13px/16px monospace;
+  font-family: Monaco, monospace;
 }
 
 pre.codeBlock.codeBlock span.code,
 div.codeBlock span.code {
-  min-width: 97%;
   display: inline-block;
+  min-width: 97%;
 }
 
 pre.codeBlock .line-number,
 div.codeBlock .line-number {
-  margin: 0 1em 0 -1em;
   border-right: 1px solid #eee;
   color: #bbb;
+  margin: 0 1em 0 -1em;
+  padding-left: 0.2em;
+  padding-right: 0.2em;
   text-align: right;
   -webkit-user-select: none; /* Chrome/Safari */
   -moz-user-select: none; /* Firefox */
@@ -72,8 +74,6 @@ div.codeBlock .line-number {
 
   -o-user-select: none;
   user-select: none;
-  padding-left: 0.2em;
-  padding-right: 0.2em;
 }
 
 pre.codeBlock .line-number span,
@@ -83,94 +83,94 @@ div.codeBlock .line-number span {
 }
 
 pre.codeBlock .cl {
-  display: block;
   clear: both;
+  display: block;
 }
 
 div.diffcontainer {
-  position: relative;
-  margin: 0 auto;
   display: none;
+  margin: 0 auto;
+  position: relative;
 }
 
 div.left {
-  width: 40%;
   display: inline-block;
+  width: 40%;
 }
 
 div.right {
-  width: 40%;
   display: inline-block;
   vertical-align: top;
+  width: 40%;
 }
 
 div.center {
-  width: 14%;
   display: inline-block;
-  vertical-align: top;
-  text-align: left;
-  margin-top: 20%;
   margin-left: 2%;
+  margin-top: 20%;
+  text-align: left;
   text-align: center;
+  vertical-align: top;
+  width: 14%;
 }
 
 pre.codeBlock.left {
-  width: 40%;
   display: inline-block;
   vertical-align: top;
+  width: 40%;
 }
 
 pre.codeBlock.right {
-  width: 40%;
   display: inline-block;
-  vertical-align: top;
   margin-left: 1em;
+  vertical-align: top;
+  width: 40%;
 }
 
 ul.toolbar {
-  width: 11%;
   display: inline-block;
+  position: absolute;
   right: 10px;
   top: 5em;
-  position: absolute;
+  width: 11%;
 }
 
 #report .reportTitle {
+  background-color: rgba(50, 57, 88, 0.1);
   border: thin solid lightgray;
   border-radius: 4px;
+  color: black;
   margin-bottom: 1em;
   padding: 5px;
-  background-color: rgba(50, 57, 88, 0.1);
-  color: black;
   width: 15em;
 }
 
 ul.toolbar li {
+  background-color: rgba(50, 57, 88, 0.1);
   border: thin solid lightgray;
   border-radius: 4px;
-  margin-bottom: 1em;
-  padding: 5px;
-  background-color: rgba(50, 57, 88, 0.1);
   color: black;
   cursor: pointer;
   line-height: 18px;
+  margin-bottom: 1em;
+  padding: 5px;
 }
 
 ul.toolbar li code {
-  margin: 0 2px;
-  padding: 0px 5px;
-  border: 1px solid #eaeaea;
   background-color: #f8f8f8;
+  border: 1px solid #eaeaea;
   border-radius: 3px;
   color: #333;
-  line-height: 20px;
   font-family: Monaco, monospace;
   font-size: 0.85em;
+  line-height: 20px;
+  margin: 0 2px;
+  padding: 0px 5px;
 }
 
 #buttons {
-  white-space: nowrap;
   margin-bottom: 1em;
+  white-space: nowrap;
 }
 
 #buttons a {
@@ -184,14 +184,14 @@ ul.toolbar li code {
 }
 
 #buttons a.disabled:hover {
-  text-decoration: none;
   cursor: default;
+  text-decoration: none;
 }
 
 #prevNextLabel {
-  width: 80%;
-  text-align: center;
   display: inline-block;
+  text-align: center;
+  width: 80%;
 }
 
 div.gutter {
@@ -199,8 +199,8 @@ div.gutter {
 }
 
 div.codeLine span.diff {
-  cursor: pointer;
   color: #c00;
+  cursor: pointer;
 }
 
 div.codeLine span.eq_off,
@@ -229,21 +229,21 @@ div.codeLine span.selected {
 }
 
 canvas.center {
-  position: absolute;
-  left: 40%;
-  width: 20%;
   height: 100%;
+  left: 40%;
+  position: absolute;
   top: 0;
+  width: 20%;
 }
 
 textarea {
-  width: 100%;
-  min-height: 500px;
-  padding: 5px;
   background: #f3f3f3;
   border-radius: 4px;
+  min-height: 500px;
+  padding: 5px;
   resize: vertical;
   white-space: pre;
+  width: 100%;
   word-wrap: normal;
 }
 
@@ -253,11 +253,11 @@ textarea.error {
 
 pre.error {
   background: #fbe3e4;
-  color: #d12f19;
   border: thin solid #fbc2c4;
   border-radius: 4px;
-  padding: 1em;
+  color: #d12f19;
   display: none;
+  padding: 1em;
   text-wrap: wrap;
 }
 
@@ -270,39 +270,39 @@ span.filterBlock input {
 }
 
 #report {
+  height: 4em;
   margin-bottom: 1em;
   position: relative;
-  height: 4em;
 }
 
 #report button {
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 56.5%;
   border-color: #36c;
   color: #36c;
+  display: block;
+  left: 56.5%;
+  position: absolute;
+  top: 0;
 }
 
 button {
-  font-size: 1.2em;
-  color: #333;
+  background: white;
   border: 1px solid #333;
   border-radius: 4px;
-  background: white;
-  padding: 0.5rem 0.7rem;
+  color: #333;
   cursor: pointer;
+  font-size: 1.2em;
+  padding: 0.5rem 0.7rem;
 }
 
 .weak {
   color: #333;
-  max-width: 25rem;
   font-size: 0.9em;
-  position: absolute;
-  top: 29px;
   left: 56.5%;
-  right: 3%;
+  max-width: 25rem;
   padding: 0 1em 0 0;
+  position: absolute;
+  right: 3%;
+  top: 29px;
 }
 
 p {
@@ -314,9 +314,9 @@ p {
 }
 
 span.fileInput {
+  display: inline-block;
   margin-left: 2em;
   margin-top: 0.5em;
-  display: inline-block;
 }
 
 .throbber-loader:not(:required) {
