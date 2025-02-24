@@ -1,8 +1,9 @@
-import './style.css';
-import diff from './differ';
+import { registerComponent } from './';
 
-diff.compare(
-  JSON.stringify({
+const getComponentInstance = registerComponent();
+const diffInstance = getComponentInstance('diff');
+if (diffInstance) {
+  diffInstance.left = JSON.stringify({
     'Aidan Gillen': {
       aboolean: true,
       array: ['Game of Thron"es', 'The Wire'],
@@ -33,8 +34,9 @@ diff.compare(
     'Annie Fitzgerald': ['Big Love', 'True Blood'],
     'Anwan Glover': ['Treme', 'The Wire'],
     'Clarke Peters': null,
-  }),
-  JSON.stringify({
+  });
+
+  diffInstance.right = JSON.stringify({
     'Aidan Gillen': {
       aboolean: 'true',
       array: ['Game of Thrones', 'The Wire'],
@@ -51,8 +53,5 @@ diff.compare(
     'Amy Ryan': ['In Treatment', 'The Wire'],
     'Annie Fitzgerald': ['True Blood', 'Big Love', 'The Sopranos', 'Oz'],
     'Anwan Glover': ['Treme', 'The Wire'],
-  }),
-  {
-    container: document.getElementById('diffcontainer')!,
-  }
-);
+  });
+}
