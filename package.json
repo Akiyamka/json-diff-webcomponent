@@ -1,7 +1,7 @@
 {
   "name": "json-diff-webcomponent",
   "private": false,
-  "version": "0.0.3",
+  "version": "0.0.4",
   "module": "./dist/json-diff-webcomponent.js",
   "type": "module",
   "exports": {
